@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { nanoid } from "nanoid"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import { EXPIRY_OPTIONS } from "@/types/email"
 import { useCopy } from "@/hooks/use-copy"
 import { useConfig } from "@/hooks/use-config"
@@ -102,7 +102,7 @@ export function CreateDialog({ onEmailCreated }: CreateDialogProps) {
           {t("title")}
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="!max-w-[800px] !w-[90vw]">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
@@ -115,16 +115,15 @@ export function CreateDialog({ onEmailCreated }: CreateDialogProps) {
               className="flex-1"
             />
             {(config?.emailDomainsArray?.length ?? 0) > 1 && (
-              <Select value={currentDomain} onValueChange={setCurrentDomain}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {config?.emailDomainsArray?.map(d => (
-                    <SelectItem key={d} value={d}>@{d}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={currentDomain}
+                onValueChange={setCurrentDomain}
+                options={config?.emailDomainsArray ?? []}
+                className="w-[200px]"
+                placeholder={t("selectDomain")}
+                searchPlaceholder={t("searchDomain")}
+                formatOption={(d) => `@${d}`}
+              />
             )}
             <Button
               variant="outline"

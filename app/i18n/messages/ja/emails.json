@@ -28,7 +28,8 @@
     "deleteSuccess": "メールボックスを削除しました",
     "deleteFailed": "メールボックスの削除に失敗しました",
     "error": "エラー",
-    "success": "成功"
+    "success": "成功",
+    "otherUser": "他人"
   },
   "create": {
     "title": "メールボックスを作成",

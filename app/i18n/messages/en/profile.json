@@ -126,6 +126,8 @@
     "description": "Manage user roles (Emperor only)",
     "search": "Search Users",
     "searchPlaceholder": "Enter username or email",
+    "selectUser": "Select user",
+    "usersCount": "users",
     "username": "Username",
     "email": "Email",
     "role": "Role",

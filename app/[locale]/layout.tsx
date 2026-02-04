@@ -7,7 +7,7 @@ import { FloatMenu } from "@/components/float-menu"
 import { ThemeProvider } from "@/components/theme/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
-import { zpix } from "../fonts"
+import { nunito, zpix } from "../fonts"
 import "../globals.css"
 import { Providers } from "../providers"
 
@@ -117,14 +117,15 @@ export default async function LocaleLayout({
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body 
-        className={cn(
-          zpix.variable,
-          "font-zpix min-h-screen antialiased",
-          "bg-background text-foreground",
-          "transition-colors duration-300"
-        )}
-      >
+        <body 
+          className={cn(
+            nunito.variable,
+            zpix.variable,
+            "font-sans min-h-screen antialiased",
+            "bg-background text-foreground",
+            "transition-colors duration-300"
+          )}
+        >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

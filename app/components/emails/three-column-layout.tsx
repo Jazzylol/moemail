@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { EmailList } from "./email-list"
 import { MessageListContainer } from "./message-list-container"
@@ -9,21 +10,30 @@ import { SendDialog } from "./send-dialog"
 import { cn } from "@/lib/utils"
 import { useCopy } from "@/hooks/use-copy"
 import { useSendPermission } from "@/hooks/use-send-permission"
+import { useUserRole } from "@/hooks/use-user-role"
+import { ROLES } from "@/lib/permissions"
 import { Copy } from "lucide-react"
 
 interface Email {
   id: string
   address: string
+  userId?: string
+  ownerName?: string
 }
 
 export function ThreeColumnLayout() {
   const t = useTranslations("emails.layout")
+  const { data: session } = useSession()
+  const { role } = useUserRole()
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null)
   const [selectedMessageType, setSelectedMessageType] = useState<'received' | 'sent'>('received')
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const { copyToClipboard } = useCopy()
   const { canSend: canSendEmails } = useSendPermission()
+  
+  // 判断是否显示创建者信息
+  const showOwnerInfo = role === ROLES.EMPEROR && selectedEmail?.userId && selectedEmail?.userId !== session?.user?.id && selectedEmail?.ownerName
 
   const columnClass = "border-2 border-primary/20 bg-background rounded-lg overflow-hidden flex flex-col"
   const headerClass = "p-2 border-b-2 border-primary/20 flex items-center justify-between shrink-0"
@@ -76,7 +86,12 @@ export function ThreeColumnLayout() {
               {selectedEmail ? (
                 <div className="w-full flex justify-between items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="truncate min-w-0">{selectedEmail.address}</span>
+                    <span className="truncate min-w-0">
+                      {selectedEmail.address}
+                      {showOwnerInfo && (
+                        <span className="ml-1 text-xs text-orange-500">({selectedEmail.ownerName})</span>
+                      )}
+                    </span>
                     <div className="shrink-0 cursor-pointer text-primary" onClick={copyEmailAddress}>
                       <Copy className="size-4" />
                     </div>
@@ -157,7 +172,12 @@ export function ThreeColumnLayout() {
                 </button>
                 <div className="flex-1 flex justify-between items-center gap-2 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="truncate min-w-0 flex-1 text-right">{selectedEmail.address}</span>
+                    <span className="truncate min-w-0 flex-1 text-right">
+                      {selectedEmail.address}
+                      {showOwnerInfo && (
+                        <span className="ml-1 text-xs text-orange-500">({selectedEmail.ownerName})</span>
+                      )}
+                    </span>
                     <div className="shrink-0 cursor-pointer text-primary" onClick={copyEmailAddress}>
                       <Copy className="size-4" />
                     </div>

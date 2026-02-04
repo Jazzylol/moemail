@@ -4,6 +4,39 @@ import { eq } from "drizzle-orm"
 
 export const runtime = "edge"
 
+// 获取所有用户列表
+export async function GET() {
+  try {
+    const db = createDb()
+
+    const allUsers = await db.query.users.findMany({
+      with: {
+        userRoles: {
+          with: {
+            role: true
+          }
+        }
+      }
+    })
+
+    return Response.json({
+      users: allUsers.map(user => ({
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        role: user.userRoles[0]?.role.name
+      }))
+    })
+  } catch (error) {
+    console.error("Failed to fetch users:", error)
+    return Response.json(
+      { error: "获取用户列表失败" },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const json = await request.json()

@@ -4,6 +4,8 @@ import { NextResponse } from "next/server"
 import { emails } from "@/lib/schema"
 import { encodeCursor, decodeCursor } from "@/lib/cursor"
 import { getUserId } from "@/lib/apiKey"
+import { getUserRole } from "@/lib/auth"
+import { ROLES } from "@/lib/permissions"
 
 export const runtime = "edge"
 
@@ -18,10 +20,17 @@ export async function GET(request: Request) {
   const db = createDb()
 
   try {
-    const baseConditions = and(
-      eq(emails.userId, userId!),
-      gt(emails.expiresAt, new Date())
-    )
+    // 检查用户是否是管理员
+    const userRole = await getUserRole(userId!)
+    const isAdmin = userRole === ROLES.EMPEROR
+
+    // 管理员可以看到所有 email，普通用户只能看到自己的
+    const baseConditions = isAdmin
+      ? gt(emails.expiresAt, new Date())
+      : and(
+          eq(emails.userId, userId!),
+          gt(emails.expiresAt, new Date())
+        )
 
     const totalResult = await db.select({ count: sql<number>`count(*)` })
       .from(emails)
@@ -49,7 +58,10 @@ export async function GET(request: Request) {
         desc(emails.createdAt),
         desc(emails.id)
       ],
-      limit: PAGE_SIZE + 1
+      limit: PAGE_SIZE + 1,
+      with: {
+        user: true
+      }
     })
     
     const hasMore = results.length > PAGE_SIZE
@@ -61,8 +73,26 @@ export async function GET(request: Request) {
       : null
     const emailList = hasMore ? results.slice(0, PAGE_SIZE) : results
 
+    // 如果是管理员，返回创建者用户名
+    const emailsWithOwner = isAdmin 
+      ? emailList.map(email => ({
+          id: email.id,
+          address: email.address,
+          createdAt: email.createdAt,
+          expiresAt: email.expiresAt,
+          userId: email.userId,
+          ownerName: email.user?.name || email.user?.username || email.user?.email || '未知用户'
+        }))
+      : emailList.map(email => ({
+          id: email.id,
+          address: email.address,
+          createdAt: email.createdAt,
+          expiresAt: email.expiresAt,
+          userId: email.userId
+        }))
+
     return NextResponse.json({ 
-      emails: emailList,
+      emails: emailsWithOwner,
       nextCursor,
       total: totalCount
     })

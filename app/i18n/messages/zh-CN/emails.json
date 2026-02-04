@@ -28,7 +28,8 @@
     "deleteSuccess": "邮箱已删除",
     "deleteFailed": "删除邮箱失败",
     "error": "错误",
-    "success": "成功"
+    "success": "成功",
+    "otherUser": "别人"
   },
   "create": {
     "title": "创建邮箱",

@@ -30,6 +30,8 @@ interface Email {
   address: string
   createdAt: number
   expiresAt: number
+  userId?: string
+  ownerName?: string
 }
 
 interface EmailListProps {
@@ -201,7 +203,12 @@ export function EmailList({ onEmailSelect, selectedEmailId }: EmailListProps) {
                 >
                   <Mail className="h-4 w-4 text-primary/60" />
                   <div className="truncate flex-1">
-                    <div className="font-medium truncate">{email.address}</div>
+                    <div className="font-medium truncate">
+                      {email.address}
+                      {role === ROLES.EMPEROR && email.userId && email.userId !== session?.user?.id && email.ownerName && (
+                        <span className="ml-1 text-xs text-orange-500">({email.ownerName})</span>
+                      )}
+                    </div>
                     <div className="text-xs text-gray-500">
                       {new Date(email.expiresAt).getFullYear() === 9999 ? (
                         t("permanent")

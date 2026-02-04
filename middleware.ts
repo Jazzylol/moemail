@@ -24,6 +24,8 @@ export async function middleware(request: Request) {
     }
 
     request.headers.delete("X-User-Id")
+
+    // 检查 API Key 认证
     const apiKey = request.headers.get("X-API-Key")
     if (apiKey) {
       return handleApiKeyAuth(apiKey, pathname)

@@ -64,13 +64,19 @@ export async function assignRoleToUser(db: Db, userId: string, roleId: string) {
     })
 }
 
-export async function getUserRole(userId: string) {
+export async function getUserRole(userId: string): Promise<Role> {
   const db = createDb()
   const userRoleRecords = await db.query.userRoles.findMany({
     where: eq(userRoles.userId, userId),
     with: { role: true },
   })
-  return userRoleRecords[0].role.name
+  
+  // 如果用户没有角色记录，返回默认角色（平民）
+  if (!userRoleRecords.length || !userRoleRecords[0]?.role) {
+    return ROLES.CIVILIAN
+  }
+  
+  return userRoleRecords[0].role.name as Role
 }
 
 export async function checkPermission(permission: Permission) {

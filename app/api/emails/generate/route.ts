@@ -9,6 +9,7 @@ import { getRequestContext } from "@cloudflare/next-on-pages"
 import { getUserId } from "@/lib/apiKey"
 import { getUserRole } from "@/lib/auth"
 import { ROLES } from "@/lib/permissions"
+import { notifyToolboxEmailStock } from "@/lib/toolbox-emailstock"
 
 export const runtime = "edge"
 
@@ -90,10 +91,15 @@ export async function POST(request: Request) {
     const result = await db.insert(emails)
       .values(emailData)
       .returning({ id: emails.id, address: emails.address })
-    
-    return NextResponse.json({ 
+
+    // 只在 UI 创建（没有 X-API-Key）时回写 toolbox，避免 toolbox 自己调本接口又被回调一次造成双写
+    if (!request.headers.get("X-API-Key")) {
+      notifyToolboxEmailStock(result[0].address)
+    }
+
+    return NextResponse.json({
       id: result[0].id,
-      email: result[0].address 
+      email: result[0].address
     })
   } catch (error) {
     console.error('Failed to generate email:', error)

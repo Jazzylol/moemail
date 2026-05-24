@@ -1,35 +1,22 @@
-import { getRequestContext } from "@cloudflare/next-on-pages"
-
-const FALLBACK_URL = "http://49.0.246.137:8765/toolbox/external/emailStock/save"
-const FALLBACK_AUTH = "a7#v9k!2m@x3q8d"
+const TOOLBOX_URL = "http://toolboxapi.caixukun.de/toolbox/external/emailStock/save"
+const TOOLBOX_AUTH = "a7#v9k!2m@x3q8d"
+const USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
 
 type WaitUntilCtx = { waitUntil?: (p: Promise<unknown>) => void }
 
-export function notifyToolboxEmailStock(account: string) {
+export function notifyToolboxEmailStock(account: string, ctx?: WaitUntilCtx) {
   try {
     if (!account) return
 
-    let url: string = FALLBACK_URL
-    let auth: string = FALLBACK_AUTH
-    let ctx: WaitUntilCtx | undefined
-
-    try {
-      const reqCtx = getRequestContext()
-      const env = ((reqCtx?.env || {}) as unknown as Record<string, string | undefined>)
-      if (env.TOOLBOX_EMAIL_STOCK_URL) url = env.TOOLBOX_EMAIL_STOCK_URL
-      if (env.TOOLBOX_EMAIL_STOCK_AUTH) auth = env.TOOLBOX_EMAIL_STOCK_AUTH
-      ctx = (reqCtx as unknown as { ctx?: WaitUntilCtx })?.ctx
-    } catch (err) {
-      console.error("toolbox emailStock getRequestContext failed", err)
-    }
-
     let task: Promise<unknown>
     try {
-      task = fetch(url, {
+      task = fetch(TOOLBOX_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${auth}`,
+          "Authorization": `Bearer ${TOOLBOX_AUTH}`,
+          "User-Agent": USER_AGENT,
+          "Accept": "application/json, text/plain, */*",
         },
         body: JSON.stringify({ account }),
       })

@@ -37,6 +37,8 @@
     "namePlaceholder": "Leave empty for random generation",
     "domain": "Domain",
     "domainPlaceholder": "Select a domain",
+    "selectDomain": "Select a domain",
+    "searchDomain": "Search domain",
     "expiryTime": "Validity Period",
     "oneHour": "1 Hour",
     "oneDay": "1 Day",

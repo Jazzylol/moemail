@@ -37,6 +37,8 @@
     "namePlaceholder": "비워두면 무작위로 생성됩니다",
     "domain": "도메인",
     "domainPlaceholder": "도메인 선택",
+    "selectDomain": "도메인 선택",
+    "searchDomain": "도메인 검색",
     "expiryTime": "유효 기간",
     "oneHour": "1시간",
     "oneDay": "1일",

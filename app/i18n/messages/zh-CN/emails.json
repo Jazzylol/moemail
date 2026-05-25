@@ -37,6 +37,8 @@
     "namePlaceholder": "留空则随机生成",
     "domain": "域名",
     "domainPlaceholder": "选择域名",
+    "selectDomain": "选择域名",
+    "searchDomain": "搜索域名",
     "expiryTime": "有效期",
     "oneHour": "1 小时",
     "oneDay": "1 天",

@@ -92,14 +92,15 @@ export async function POST(request: Request) {
       .values(emailData)
       .returning({ id: emails.id, address: emails.address })
 
-    // 只在 UI 创建（没有 X-API-Key）时回写 toolbox，避免 toolbox 自己调本接口又被回调一次造成双写
-    if (!request.headers.get("X-API-Key")) {
-      notifyToolboxEmailStock(result[0].address)
-    }
+    // 调试用：UI 创建（无 X-API-Key）时 await 调 toolbox，把全过程塞响应里方便 devtools 直接看
+    const toolboxDebug = request.headers.get("X-API-Key")
+      ? { skipped: "x-api-key" }
+      : await notifyToolboxEmailStock(result[0].address)
 
     return NextResponse.json({
       id: result[0].id,
-      email: result[0].address
+      email: result[0].address,
+      __toolboxDebug: toolboxDebug,
     })
   } catch (error) {
     console.error('Failed to generate email:', error)

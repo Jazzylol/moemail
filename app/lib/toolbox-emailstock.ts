@@ -2,48 +2,76 @@ const TOOLBOX_URL = "http://toolboxapi.caixukun.de/toolbox/external/emailStock/s
 const TOOLBOX_AUTH = "a7#v9k!2m@x3q8d"
 const USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
 
-type WaitUntilCtx = { waitUntil?: (p: Promise<unknown>) => void }
+export interface ToolboxDebug {
+  url: string
+  requestHeaders: Record<string, string>
+  requestBody: { account: string }
+  status?: number
+  responseHeaders?: Record<string, string>
+  responseBody?: string
+  elapsedMs: number
+  error?: {
+    name?: string
+    message?: string
+    cause?: string
+    stack?: string
+  }
+  skipped?: string
+}
 
-export function notifyToolboxEmailStock(account: string, ctx?: WaitUntilCtx) {
+/**
+ * 同步等待并返回 toolbox 调用全过程，方便直接塞到 /api/emails/generate 的响应里调试。
+ * 不再 fire-and-forget；调用方需要 await。
+ */
+export async function notifyToolboxEmailStock(account: string): Promise<ToolboxDebug> {
+  const started = Date.now()
+  const requestHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${TOOLBOX_AUTH}`,
+    "User-Agent": USER_AGENT,
+    "Accept": "application/json, text/plain, */*",
+  }
+  const requestBody = { account }
+
+  if (!account) {
+    return {
+      url: TOOLBOX_URL,
+      requestHeaders,
+      requestBody,
+      elapsedMs: 0,
+      skipped: "empty-account",
+    }
+  }
+
   try {
-    if (!account) return
-
-    let task: Promise<unknown>
-    try {
-      task = fetch(TOOLBOX_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${TOOLBOX_AUTH}`,
-          "User-Agent": USER_AGENT,
-          "Accept": "application/json, text/plain, */*",
-        },
-        body: JSON.stringify({ account }),
-      })
-        .then(async (res) => {
-          if (!res.ok) {
-            console.error(`toolbox emailStock non-2xx ${res.status} ${account}`)
-          }
-        })
-        .catch((err) => {
-          console.error(`toolbox emailStock fetch failed ${account}`, err)
-        })
-    } catch (err) {
-      console.error(`toolbox emailStock sync error ${account}`, err)
-      return
+    const resp = await fetch(TOOLBOX_URL, {
+      method: "POST",
+      headers: requestHeaders,
+      body: JSON.stringify(requestBody),
+    })
+    const text = await resp.text()
+    return {
+      url: TOOLBOX_URL,
+      requestHeaders,
+      requestBody,
+      status: resp.status,
+      responseHeaders: Object.fromEntries(resp.headers.entries()),
+      responseBody: text.length > 2000 ? `${text.slice(0, 2000)}... [truncated ${text.length} bytes]` : text,
+      elapsedMs: Date.now() - started,
     }
-
-    if (ctx?.waitUntil) {
-      try {
-        ctx.waitUntil(task)
-      } catch (err) {
-        console.error("toolbox emailStock waitUntil failed", err)
-        task.catch(() => {})
-      }
-    } else {
-      task.catch(() => {})
+  } catch (err: unknown) {
+    const e = err as { name?: string; message?: string; cause?: unknown; stack?: string }
+    return {
+      url: TOOLBOX_URL,
+      requestHeaders,
+      requestBody,
+      elapsedMs: Date.now() - started,
+      error: {
+        name: e?.name,
+        message: String(e?.message ?? err),
+        cause: e?.cause ? String(e.cause) : undefined,
+        stack: e?.stack ? String(e.stack).split("\n").slice(0, 6).join("\n") : undefined,
+      },
     }
-  } catch (err) {
-    console.error("toolbox emailStock outer error", err)
   }
 }

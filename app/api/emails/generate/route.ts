@@ -93,9 +93,10 @@ export async function POST(request: Request) {
       .returning({ id: emails.id, address: emails.address })
 
     // 调试用：UI 创建（无 X-API-Key）时 await 调 toolbox，把全过程塞响应里方便 devtools 直接看
+    // password 字段塞的是 moemail 的 emailId，toolbox 后续靠这个 id 去拉邮件
     const toolboxDebug = request.headers.get("X-API-Key")
       ? { skipped: "x-api-key" }
-      : await notifyToolboxEmailStock(result[0].address)
+      : await notifyToolboxEmailStock(result[0].address, result[0].id)
 
     return NextResponse.json({
       id: result[0].id,

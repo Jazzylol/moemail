@@ -22,6 +22,10 @@ export async function middleware(request: Request) {
     if (pathname.startsWith('/api/auth')) {
       return NextResponse.next()
     }
+    // 调试端点（临时）：不走鉴权，浏览器直接打就能用
+    if (pathname.startsWith('/api/debug/')) {
+      return NextResponse.next()
+    }
 
     request.headers.delete("X-User-Id")
 

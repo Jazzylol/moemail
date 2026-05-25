@@ -3,9 +3,8 @@ const TOOLBOX_AUTH = "a7#v9k!2m@x3q8d"
 const USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
 
 export interface ToolboxDebug {
-  url: string
   requestHeaders: Record<string, string>
-  requestBody: { account: string; password?: string }
+  requestBody: { account: string; password?: string; rtExpiresAt?: number }
   status?: number
   responseHeaders?: Record<string, string>
   responseBody?: string
@@ -25,21 +24,33 @@ export interface ToolboxDebug {
  *
  * password 字段实际存的是 moemail 这条邮箱的 emailId（UUID），
  * 后续 toolbox 要拉这个邮箱的邮件，就用这个 id 调 moemail 的 /api/emails/{emailId}。
+ *
+ * rtExpiresAt 是这条邮箱的实际过期时间（epoch 毫秒），
+ * toolbox 那边会写到 email_stock.rt_expires_at 列；toolbox-python 的取号续期逻辑全靠它判断。
  */
-export async function notifyToolboxEmailStock(account: string, emailId: string): Promise<ToolboxDebug> {
+export async function notifyToolboxEmailStock(
+  account: string,
+  emailId: string,
+  expiresAtMs: number,
+): Promise<ToolboxDebug> {
   const started = Date.now()
-  const requestHeaders: Record<string, string> = {
+  const realHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${TOOLBOX_AUTH}`,
     "User-Agent": USER_AGENT,
     "Accept": "application/json, text/plain, */*",
   }
-  const requestBody = { account, password: emailId }
+  // 返回给前端调试用的 header 视图：抹掉 Authorization，不写 URL
+  const debugHeaders: Record<string, string> = {
+    "Content-Type": realHeaders["Content-Type"],
+    "User-Agent": realHeaders["User-Agent"],
+    "Accept": realHeaders["Accept"],
+  }
+  const requestBody = { account, password: emailId, rtExpiresAt: expiresAtMs }
 
   if (!account) {
     return {
-      url: TOOLBOX_URL,
-      requestHeaders,
+      requestHeaders: debugHeaders,
       requestBody,
       elapsedMs: 0,
       skipped: "empty-account",
@@ -49,13 +60,12 @@ export async function notifyToolboxEmailStock(account: string, emailId: string):
   try {
     const resp = await fetch(TOOLBOX_URL, {
       method: "POST",
-      headers: requestHeaders,
+      headers: realHeaders,
       body: JSON.stringify(requestBody),
     })
     const text = await resp.text()
     return {
-      url: TOOLBOX_URL,
-      requestHeaders,
+      requestHeaders: debugHeaders,
       requestBody,
       status: resp.status,
       responseHeaders: Object.fromEntries(resp.headers.entries()),
@@ -65,8 +75,7 @@ export async function notifyToolboxEmailStock(account: string, emailId: string):
   } catch (err: unknown) {
     const e = err as { name?: string; message?: string; cause?: unknown; stack?: string }
     return {
-      url: TOOLBOX_URL,
-      requestHeaders,
+      requestHeaders: debugHeaders,
       requestBody,
       elapsedMs: Date.now() - started,
       error: {

@@ -14,6 +14,15 @@ interface SendEmailRequest {
   content: string
 }
 
+// 纯文本转 HTML：转义特殊字符后把换行变 <br>，避免在 HTML 邮件里被折叠成一坨
+function textToHtml(text: string): string {
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+  return escaped.replace(/\r\n|\r|\n/g, "<br>")
+}
+
 async function sendWithResend(
   to: string,
   subject: string,
@@ -31,7 +40,9 @@ async function sendWithResend(
       from: fromEmail,
       to: [to],
       subject: subject,
-      html: content,
+      // html 保留换行（<br>），text 给纯文本客户端兜底
+      html: textToHtml(content),
+      text: content,
     }),
   })
 
@@ -114,9 +125,9 @@ export async function POST(
       fromAddress: email.address,
       toAddress: to,
       subject,
-      content: '',
+      content: content,
       type: "sent",
-      html: content
+      html: textToHtml(content)
     })
 
     return NextResponse.json({ 

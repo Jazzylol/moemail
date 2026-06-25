@@ -107,6 +107,10 @@
     "adminContact": "管理员联系方式",
     "adminContactPlaceholder": "邮箱或其他联系方式",
     "maxEmails": "每个用户最大邮箱数",
+    "registration": {
+      "enable": "启用用户注册",
+      "enableDescription": "关闭后将隐藏注册入口，且接口拒绝新注册（已注册用户不受影响）。"
+    },
     "turnstile": {
       "enable": "启用 Cloudflare Turnstile",
       "enableDescription": "开启后，账号登录与注册将需要通过 Turnstile 验证",

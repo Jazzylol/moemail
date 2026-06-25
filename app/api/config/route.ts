@@ -14,6 +14,7 @@ export async function GET() {
     emailDomains,
     adminContact,
     maxEmails,
+    registrationEnabled,
     turnstileEnabled,
     turnstileSiteKey,
     turnstileSecretKey
@@ -22,6 +23,7 @@ export async function GET() {
     env.SITE_CONFIG.get("EMAIL_DOMAINS"),
     env.SITE_CONFIG.get("ADMIN_CONTACT"),
     env.SITE_CONFIG.get("MAX_EMAILS"),
+    env.SITE_CONFIG.get("REGISTRATION_ENABLED"),
     env.SITE_CONFIG.get("TURNSTILE_ENABLED"),
     env.SITE_CONFIG.get("TURNSTILE_SITE_KEY"),
     env.SITE_CONFIG.get("TURNSTILE_SECRET_KEY")
@@ -32,6 +34,8 @@ export async function GET() {
     emailDomains: emailDomains || "moemail.app",
     adminContact: adminContact || "",
     maxEmails: maxEmails || EMAIL_CONFIG.MAX_ACTIVE_EMAILS.toString(),
+    // 默认关闭注册：仅当显式存为 "true" 时才开放（KV 未设置即视为关闭），公开字段供登录页隐藏注册入口
+    registrationEnabled: registrationEnabled === "true",
     turnstile: canManageConfig ? {
       enabled: turnstileEnabled === "true",
       siteKey: turnstileSiteKey || "",
@@ -54,12 +58,14 @@ export async function POST(request: Request) {
     emailDomains,
     adminContact,
     maxEmails,
+    registrationEnabled,
     turnstile
-  } = await request.json() as { 
+  } = await request.json() as {
     defaultRole: Exclude<Role, typeof ROLES.EMPEROR>,
     emailDomains: string,
     adminContact: string,
     maxEmails: string,
+    registrationEnabled?: boolean,
     turnstile?: {
       enabled: boolean,
       siteKey: string,
@@ -87,6 +93,8 @@ export async function POST(request: Request) {
     env.SITE_CONFIG.put("EMAIL_DOMAINS", emailDomains),
     env.SITE_CONFIG.put("ADMIN_CONTACT", adminContact),
     env.SITE_CONFIG.put("MAX_EMAILS", maxEmails),
+    // 未传时默认关闭注册
+    env.SITE_CONFIG.put("REGISTRATION_ENABLED", (registrationEnabled ?? false).toString()),
     env.SITE_CONFIG.put("TURNSTILE_ENABLED", turnstileConfig.enabled.toString()),
     env.SITE_CONFIG.put("TURNSTILE_SITE_KEY", turnstileConfig.siteKey),
     env.SITE_CONFIG.put("TURNSTILE_SECRET_KEY", turnstileConfig.secretKey)

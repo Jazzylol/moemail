@@ -30,6 +30,7 @@ interface TurnstileConfigProps {
 
 interface LoginFormProps {
   turnstile?: TurnstileConfigProps
+  registrationEnabled?: boolean
 }
 
 interface FormErrors {
@@ -38,7 +39,7 @@ interface FormErrors {
   confirmPassword?: string
 }
 
-export function LoginForm({ turnstile }: LoginFormProps) {
+export function LoginForm({ turnstile, registrationEnabled = true }: LoginFormProps) {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -141,6 +142,7 @@ export function LoginForm({ turnstile }: LoginFormProps) {
   }
 
   const handleRegister = async () => {
+    if (!registrationEnabled) return
     if (!validateRegisterForm()) return
     if (!ensureTurnstileSolved()) return
 
@@ -216,9 +218,11 @@ export function LoginForm({ turnstile }: LoginFormProps) {
       </CardHeader>
       <CardContent className="px-6">
         <Tabs value={activeTab} className="w-full" onValueChange={handleTabChange}>
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className={cn("grid w-full mb-6", registrationEnabled ? "grid-cols-2" : "grid-cols-1")}>
             <TabsTrigger value="login">{t("tabs.login")}</TabsTrigger>
-            <TabsTrigger value="register">{t("tabs.register")}</TabsTrigger>
+            {registrationEnabled && (
+              <TabsTrigger value="register">{t("tabs.register")}</TabsTrigger>
+            )}
           </TabsList>
           <div className="min-h-[220px]">
             <TabsContent value="login" className="space-y-4 mt-0">

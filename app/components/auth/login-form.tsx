@@ -19,7 +19,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { Github, Loader2, KeyRound, User2 } from "lucide-react"
+import { Loader2, KeyRound, User2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Turnstile } from "@/components/auth/turnstile"
 
@@ -198,13 +198,14 @@ export function LoginForm({ turnstile, registrationEnabled = true }: LoginFormPr
     }
   }
 
-  const handleGithubLogin = () => {
-    signIn("github", { callbackUrl: "/" })
-  }
+  // 已隐藏第三方登录入口（保留代码，需要时取消注释即可恢复）
+  // const handleGithubLogin = () => {
+  //   signIn("github", { callbackUrl: "/" })
+  // }
 
-  const handleGoogleLogin = () => {
-    signIn("google", { callbackUrl: "/" })
-  }
+  // const handleGoogleLogin = () => {
+  //   signIn("google", { callbackUrl: "/" })
+  // }
 
   return (
     <Card className="w-[95%] max-w-lg border-2 border-primary/20">
@@ -286,6 +287,7 @@ export function LoginForm({ turnstile, registrationEnabled = true }: LoginFormPr
                   {t("actions.login")}
                 </Button>
 
+                {/* 已隐藏第三方登录（GitHub / Google）入口 —— 保留代码，需要时取消注释即可恢复
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
@@ -331,6 +333,7 @@ export function LoginForm({ turnstile, registrationEnabled = true }: LoginFormPr
                   </svg>
                   {t("actions.googleLogin")}
                 </Button>
+                */}
               </div>
             </TabsContent>
             <TabsContent value="register" className="space-y-4 mt-0">
